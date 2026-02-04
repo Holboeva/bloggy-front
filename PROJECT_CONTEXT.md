@@ -1,68 +1,124 @@
 # Bloggy Project Context
 
-## Project Idea
-Bloggy is a social + portfolio platform where users can:
-- Share posts
-- Network with professionals
-- Build a personal portfolio website
+## 🚀 Project Idea
 
-This is currently a frontend-only MVP demo.
+Bloggy is a social + portfolio platform where users can:
+
+- Share posts
+
+- Comment & like
+
+- Network with others
+
+- Build a portfolio website
+
+This is a full-stack MVP.
 
 ---
 
-## Tech Stack
+## 🛠 Tech Stack
+
+Frontend:
+
 - Next.js (App Router)
+
 - TypeScript
+
 - Tailwind CSS
 
+Backend:
+
+- Django REST Framework
+
+- JWT Authentication
+
+- PostgreSQL (Render)
+
 ---
 
-## Current Status
-Frontend MVP (client-side only, no backend).
+## ✅ Implemented Features
+
+### 🔹 Auth
+
+- JWT login working
+
+- Token-based requests
+
+- Backend token endpoint integrated
+
+- Auto token attach to API calls
 
 ---
 
-## Implemented Features
+### 🔹 Social Feed
 
-### Social Feed
-- Create post (local state)
-- Like/unlike posts
-- Comment system
-- Bookmark/save posts
-- Delete own posts
-- Share (copy link mock)
-- All stored in local state
+- Fetch posts from backend
 
-### Portfolio Page
-- Portfolio website style layout
-- Hero section
-- Skills tags
-- Project showcase grid
+- Create post
+
+- Like system
+
+- Comments (nested API)
+
+- Bookmark/save
+
+- Delete post
+
+---
+
+### 🔹 Portfolio
+
+- Portfolio showcase page
+
+- Projects display
+
+- Skills section
+
 - Links section
-- Local state projects
-
-### Profile Page
-- Basic profile UI
-- Avatar, bio, posts preview
 
 ---
 
-## NOT Implemented Yet
-- Authentication
-- Backend API
-- Database
+### 🔹 Backend Integration
+
+- Connected to live Render API
+
+- CORS configured
+
+- Real database connected
+
+---
+
+## ❌ Not Implemented Yet
+
+- Register page with auto-login
+
+- Logout
+
+- Protected routes middleware
+
+- Profile edit
+
+- Image uploads
+
 - Real-time chat
-- File/image uploads
 
 ---
 
-## Goal
-Demo-ready MVP to showcase the startup idea.
+## 🎯 Current Goal
+
+Demo-ready startup MVP.
 
 ---
 
-## Suggested Next Steps
-1. Add authentication
-2. Connect backend API
-3. Add database
-4. Deploy demo
+## 📌 Next Steps
+
+1) Register page → auto login
+
+2) Logout system
+
+3) Protect routes
+
+4) Profile fetch
+
+5) Deployment polish
+
