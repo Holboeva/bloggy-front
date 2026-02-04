@@ -1,124 +1,208 @@
-# Bloggy Project Context
+# Bloggy Startup — Project Context
 
-## 🚀 Project Idea
+## 📌 Project Overview
 
-Bloggy is a social + portfolio platform where users can:
+Bloggy — bu social blogging platforma bo‘lib, foydalanuvchilar:
 
-- Share posts
+- ro'yxatdan o'tishi (register)
+- login qilishi (JWT auth)
+- post joylashi
+- postlarni ko'rishi (feed)
+- comment yozishi
+- profil ko'rishi
 
-- Comment & like
+mumkin bo‘lgan platforma.
 
-- Network with others
-
-- Build a portfolio website
-
-This is a full-stack MVP.
+Backend Django REST API, frontend Next.js (TypeScript + Tailwind).
 
 ---
 
-## 🛠 Tech Stack
+# 🧩 Tech Stack
+
+## Backend
+- Django
+- Django REST Framework
+- SimpleJWT (JWT authentication)
+- PostgreSQL (Render database)
+- drf-spectacular (Swagger docs)
+- CORS enabled
+
+Hosted on:
+https://bloggy-startup.onrender.com
+
+---
+
+## Frontend
+- Next.js (App Router)
+- TypeScript
+- TailwindCSS
+- JWT auth via localStorage
+
+---
+
+# 🔐 Authentication Flow
+
+JWT authentication ishlatiladi.
+
+## Login
+Endpoint:
+
+POST /api/token/
+
+Body:
+
+{
+  "username": "...",
+  "password": "..."
+}
+
+Response:
+
+{
+  "access": "...",
+  "refresh": "..."
+}
 
 Frontend:
-
-- Next.js (App Router)
-
-- TypeScript
-
-- Tailwind CSS
-
-Backend:
-
-- Django REST Framework
-
-- JWT Authentication
-
-- PostgreSQL (Render)
+- access → localStorage
+- refresh → localStorage
 
 ---
 
-## ✅ Implemented Features
+## Authenticated requests
 
-### 🔹 Auth
+Header:
 
-- JWT login working
-
-- Token-based requests
-
-- Backend token endpoint integrated
-
-- Auto token attach to API calls
+Authorization: Bearer <access_token>
 
 ---
 
-### 🔹 Social Feed
+# 👤 User System
 
-- Fetch posts from backend
+## Register
 
-- Create post
+Endpoint mavjud:
+POST /api/users/register/
 
-- Like system
+Frontend register page ishlaydi.
 
-- Comments (nested API)
-
-- Bookmark/save
-
-- Delete post
-
----
-
-### 🔹 Portfolio
-
-- Portfolio showcase page
-
-- Projects display
-
-- Skills section
-
-- Links section
+Registerdan keyin:
+- user avtomatik login qilinadi
+- token olinadi
+- feedga redirect qilinadi
 
 ---
 
-### 🔹 Backend Integration
+## Profile (Me endpoint)
 
-- Connected to live Render API
+Endpoint:
 
-- CORS configured
+GET /api/users/me/
 
-- Real database connected
+IsAuthenticated talab qiladi.
 
----
+MeView ishlaydi backendda.
 
-## ❌ Not Implemented Yet
+Serializer mavjud.
 
-- Register page with auto-login
-
-- Logout
-
-- Protected routes middleware
-
-- Profile edit
-
-- Image uploads
-
-- Real-time chat
+Frontend profile page token bilan request yuboradi.
 
 ---
 
-## 🎯 Current Goal
+# 📝 Posts
 
-Demo-ready startup MVP.
+Endpoint:
+
+GET /api/posts/
+POST /api/posts/
+
+Feed sahifada postlar chiqadi.
+
+JWT talab qilinadi.
 
 ---
 
-## 📌 Next Steps
+# 💬 Comments
 
-1) Register page → auto login
+Nested endpoints:
 
-2) Logout system
+GET /api/posts/{post_id}/comments/
+POST /api/posts/{post_id}/comments/
 
-3) Protect routes
+Backend ishlaydi.
 
-4) Profile fetch
+Frontend integration hali to'liq emas.
 
-5) Deployment polish
+---
 
+# 🎥 Media Upload (Planned)
+
+Hozircha to'liq implement qilinmagan.
+
+Plan:
+
+Post modelga:
+- image field
+- video field
+
+qo'shish.
+
+Frontend:
+multipart/form-data upload.
+
+---
+
+# 🚧 Current Status
+
+✅ Register works  
+✅ Login works  
+✅ JWT auth works  
+✅ Feed loads posts  
+✅ Profile (/users/me) works  
+✅ Render deployment working  
+✅ PostgreSQL connected  
+
+---
+
+# ❗ Pending Features
+
+1) Comments UI integration  
+2) Profile UI upgrade (avatar, bio, user posts)  
+3) Post image/video upload  
+4) Better error handling  
+5) Token auto refresh logic improvement  
+
+---
+
+# 📂 Important API Base URL
+
+https://bloggy-startup.onrender.com
+
+Swagger docs:
+
+/api/schema/
+/api/docs/
+
+---
+
+# 🧠 Notes for Future Development
+
+- Always use JWT header
+- Backend already supports nested comments
+- Media upload requires backend model update
+- Frontend must use FormData for files
+- Tokens stored in localStorage
+
+---
+
+# 🎯 Goal
+
+Make Bloggy a portfolio-level social platform with:
+
+- auth
+- posts
+- comments
+- media
+- profile system
+
+similar to LinkedIn-lite.
