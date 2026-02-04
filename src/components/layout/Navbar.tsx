@@ -1,16 +1,27 @@
- "use client";
+"use client";
 
- import { useState } from "react";
- import { Menu, Bell, MessageCircle, Search, X } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Menu, Bell, MessageCircle, Search, X } from "lucide-react";
+import { logout } from "@/lib/api";
 
- interface NavbarProps {
-   onToggleSidebar?: () => void;
- }
+interface NavbarProps {
+  onToggleSidebar?: () => void;
+}
 
- export function Navbar({ onToggleSidebar }: NavbarProps) {
-   const [search, setSearch] = useState("");
+export function Navbar({ onToggleSidebar }: NavbarProps) {
+  const [search, setSearch] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
 
-   return (
+  const handleLogout = () => {
+    logout();
+    setMenuOpen(false);
+    router.replace("/login");
+  };
+
+  return (
      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-3 sm:h-16 sm:px-4 lg:px-6">
          {/* Left: Logo + mobile menu */}
@@ -68,16 +79,44 @@
            >
              <MessageCircle className="h-4 w-4" />
            </button>
-           <button
-             type="button"
-             className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-gradient-to-tr from-indigo-500 via-sky-500 to-emerald-400 text-xs font-medium text-white shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-zinc-800"
-             aria-label="Open profile menu"
-           >
-             BG
-           </button>
+           <div className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-gradient-to-tr from-indigo-500 via-sky-500 to-emerald-400 text-xs font-medium text-white shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-zinc-800"
+              aria-label="Open profile menu"
+            >
+              BG
+            </button>
+            {menuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  aria-hidden
+                  onClick={() => setMenuOpen(false)}
+                />
+                <div className="absolute right-0 top-full z-20 mt-1 w-40 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
+                  <Link
+                    href="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    Log out
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
          </div>
        </div>
-     </header>
-   );
- }
+    </header>
+  );
+}
 

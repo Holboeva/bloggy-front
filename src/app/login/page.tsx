@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api";
 
@@ -26,8 +27,12 @@ export default function LoginPage() {
       setError(null);
       await login(trimmedUsername, trimmedPassword);
       router.push("/feed");
-    } catch (err: any) {
-      setError(err?.message || "Invalid credentials");
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "message" in err && typeof (err as { message: string }).message === "string"
+          ? (err as { message: string }).message
+          : "Sign in failed";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -99,6 +104,16 @@ export default function LoginPage() {
           >
             {isLoading ? "Signing in..." : "Sign in"}
           </button>
+
+          <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/register"
+              className="font-medium text-zinc-700 underline hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-zinc-50"
+            >
+              Register
+            </Link>
+          </p>
         </form>
       </div>
     </div>

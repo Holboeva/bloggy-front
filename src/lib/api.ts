@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://bloggy-startup.onrender.com";
+const API_BASE_URL = "https://bloggy-startup.onrender.com/api";
 
 export type TokenResponse = {
   access: string;
@@ -26,11 +26,14 @@ export class ApiError extends Error implements ApiErrorShape {
   }
 }
 
+const ACCESS_KEY = "bloggy_access";
+const REFRESH_KEY = "bloggy_refresh";
+
 // Token management
 function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;
   try {
-    return window.localStorage.getItem("bloggy_access_token");
+    return window.localStorage.getItem(ACCESS_KEY);
   } catch {
     return null;
   }
@@ -39,17 +42,17 @@ function getAccessToken(): string | null {
 function getRefreshToken(): string | null {
   if (typeof window === "undefined") return null;
   try {
-    return window.localStorage.getItem("bloggy_refresh_token");
+    return window.localStorage.getItem(REFRESH_KEY);
   } catch {
     return null;
   }
 }
 
-function setTokens(access: string, refresh: string): void {
+export function setTokens(access: string, refresh: string): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem("bloggy_access_token", access);
-    window.localStorage.setItem("bloggy_refresh_token", refresh);
+    window.localStorage.setItem(ACCESS_KEY, access);
+    window.localStorage.setItem(REFRESH_KEY, refresh);
   } catch {
     // ignore localStorage errors
   }
@@ -58,8 +61,8 @@ function setTokens(access: string, refresh: string): void {
 function clearTokens(): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.removeItem("bloggy_access_token");
-    window.localStorage.removeItem("bloggy_refresh_token");
+    window.localStorage.removeItem(ACCESS_KEY);
+    window.localStorage.removeItem(REFRESH_KEY);
   } catch {
     // ignore localStorage errors
   }
@@ -86,7 +89,7 @@ async function refreshAccessToken(): Promise<string | null> {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/token/refresh/`, {
+      const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -243,23 +246,53 @@ export function apiPatch<T, TBody = unknown>(
   });
 }
 
-// Auth helpers
-export async function login(username: string, password: string): Promise<TokenResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/token/`, {
+// Auth types
+export type RegisterPayload = {
+  username: string;
+  email: string;
+  password: string;
+};
+
+// Auth helpers (no auth header for login/register)
+export async function register(payload: RegisterPayload): Promise<unknown> {
+  const body = { username: payload.username, email: payload.email, password: payload.password };
+  const response = await fetch(`${API_BASE_URL}/users/register/`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const message = parseBackendErrorMessage(errorData);
+    throw new ApiError({ status: response.status, message, detail: errorData });
+  }
+
+  return response.json().catch(() => ({}));
+}
+
+function parseBackendErrorMessage(errorData: unknown): string {
+  if (!errorData || typeof errorData !== "object") return "Something went wrong";
+  const o = errorData as Record<string, string[] | string | undefined>;
+  if (typeof o.detail === "string") return o.detail;
+  if (Array.isArray(o.username) && o.username[0]) return o.username[0];
+  if (Array.isArray(o.email) && o.email[0]) return o.email[0];
+  if (Array.isArray(o.password) && o.password[0]) return o.password[0];
+  if (Array.isArray(o.non_field_errors) && o.non_field_errors[0]) return o.non_field_errors[0];
+  return "Something went wrong";
+}
+
+export async function login(username: string, password: string): Promise<TokenResponse> {
+  const response = await fetch(`${API_BASE_URL}/login/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new ApiError({
-      status: response.status,
-      message: "Invalid credentials",
-      detail: errorData,
-    });
+    const message = parseBackendErrorMessage(errorData);
+    throw new ApiError({ status: response.status, message, detail: errorData });
   }
 
   const tokens = (await response.json()) as TokenResponse;
@@ -273,5 +306,17 @@ export function logout(): void {
 
 export function isAuthenticated(): boolean {
   return getAccessToken() !== null;
+}
+
+// Profile (authenticated)
+export type UserProfile = {
+  id?: number;
+  username: string;
+  email: string;
+  bio?: string;
+};
+
+export async function getCurrentUser(): Promise<UserProfile> {
+  return apiGet<UserProfile>("/users/me/");
 }
 

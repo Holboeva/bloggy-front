@@ -10,9 +10,9 @@ interface ConditionalAppShellProps {
 
 export function ConditionalAppShell({ children }: ConditionalAppShellProps) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  const isAuthPage = pathname === "/login" || pathname === "/register";
 
-  if (isLoginPage) {
+  if (isAuthPage) {
     return <>{children}</>;
   }
 

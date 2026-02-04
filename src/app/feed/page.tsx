@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CreatePostBar } from "@/components/feed/CreatePostBar";
 import { PostCard, type Comment, type Post } from "@/components/feed/PostCard";
 import { apiDelete, apiGet, apiPost } from "@/lib/api";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 type ApiPost = {
   id: number;
@@ -30,6 +31,8 @@ type ApiPaginatedPosts = {
 };
 
 export default function FeedPage() {
+  useRequireAuth();
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -41,7 +44,7 @@ export default function FeedPage() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await apiGet<ApiPaginatedPosts>("/api/posts/");
+        const data = await apiGet<ApiPaginatedPosts>("/posts/");
 
         const mappedPosts: Post[] = data.results.map((post) => ({
           id: String(post.id),
@@ -67,7 +70,7 @@ export default function FeedPage() {
           mappedPosts.map(async (post) => {
             try {
               const comments = await apiGet<ApiComment[]>(
-                `/api/posts/${post.id}/comments/`,
+                `/posts/${post.id}/comments/`,
               );
               if (!isMounted) return;
               setPosts((prev) =>
@@ -113,7 +116,7 @@ export default function FeedPage() {
 
   const handleCreatePost = async (content: string) => {
     const created = await apiPost<ApiPost, { content: string }>(
-      "/api/posts/",
+      "/posts/",
       { content },
     );
 
@@ -149,7 +152,7 @@ export default function FeedPage() {
       ),
     );
 
-    void apiPost<{ liked: boolean }>(`/api/posts/${id}/like/`, {}).catch(() => {
+    void apiPost<{ liked: boolean }>(`/posts/${id}/like/`, {}).catch(() => {
       // Simple rollback if needed
       setPosts((prev) =>
         prev.map((post) =>
@@ -175,7 +178,7 @@ export default function FeedPage() {
 
   const handleDeletePost = (id: string) => {
     setPosts((prev) => prev.filter((post) => post.id !== id));
-    void apiDelete<unknown>(`/api/posts/${id}/`).catch(() => {
+    void apiDelete<unknown>(`/posts/${id}/`).catch(() => {
       // if delete fails, we could refetch; for now, ignore for demo
     });
   };
@@ -183,7 +186,7 @@ export default function FeedPage() {
   const handleAddComment = (id: string, content: string) => {
     void (async () => {
       const created = await apiPost<ApiComment, { content: string }>(
-        `/api/posts/${id}/comments/`,
+        `/posts/${id}/comments/`,
         { content },
       );
 
