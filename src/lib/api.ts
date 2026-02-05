@@ -89,7 +89,7 @@ async function refreshAccessToken(): Promise<string | null> {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
+      const response = await fetch(`${API_BASE_URL}/refresh/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -251,11 +251,21 @@ export type RegisterPayload = {
   username: string;
   email: string;
   password: string;
+  first_name?: string;
+  last_name?: string;
+  bio?: string;
 };
 
 // Auth helpers (no auth header for login/register)
 export async function register(payload: RegisterPayload): Promise<unknown> {
-  const body = { username: payload.username, email: payload.email, password: payload.password };
+  const body = {
+    username: payload.username,
+    email: payload.email,
+    password: payload.password,
+    ...(payload.first_name != null && { first_name: payload.first_name }),
+    ...(payload.last_name != null && { last_name: payload.last_name }),
+    ...(payload.bio != null && { bio: payload.bio }),
+  };
   const response = await fetch(`${API_BASE_URL}/users/register/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -313,10 +323,24 @@ export type UserProfile = {
   id?: number;
   username: string;
   email: string;
+  first_name?: string;
+  last_name?: string;
   bio?: string;
+  skills?: string[];
 };
 
 export async function getCurrentUser(): Promise<UserProfile> {
   return apiGet<UserProfile>("/users/me/");
+}
+
+export type UpdateProfilePayload = {
+  first_name?: string;
+  last_name?: string;
+  bio?: string;
+  skills?: string[];
+};
+
+export async function updateProfile(payload: UpdateProfilePayload): Promise<UserProfile> {
+  return apiPatch<UserProfile>("/users/me/", payload);
 }
 

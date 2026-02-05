@@ -8,6 +8,9 @@ import { register as apiRegister, login } from "@/lib/api";
 export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [bio, setBio] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,6 +23,8 @@ export default function RegisterPage() {
 
     const trimmedUsername = username.trim();
     const trimmedEmail = email.trim();
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
 
     if (!trimmedUsername || !trimmedEmail || !password || !confirmPassword) {
       setError("All fields are required.");
@@ -42,6 +47,9 @@ export default function RegisterPage() {
         username: trimmedUsername,
         email: trimmedEmail,
         password,
+        first_name: trimmedFirstName || undefined,
+        last_name: trimmedLastName || undefined,
+        bio: bio.trim() || undefined,
       });
       await login(trimmedUsername, password);
       router.push("/feed");
@@ -69,6 +77,45 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-zinc-300"
+              >
+                First name
+              </label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                autoComplete="given-name"
+                className="h-10 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-600"
+                placeholder="Jane"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-zinc-300"
+              >
+                Last name
+              </label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete="family-name"
+                className="h-10 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-600"
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <label
               htmlFor="username"
@@ -86,6 +133,27 @@ export default function RegisterPage() {
               autoComplete="username"
               className="h-10 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-600"
               placeholder="Choose a username"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label
+              htmlFor="bio"
+              className="block text-sm font-medium text-zinc-300"
+            >
+              Bio
+              <span className="ml-1 text-xs font-normal text-zinc-500">
+                (optional)
+              </span>
+            </label>
+            <textarea
+              id="bio"
+              name="bio"
+              rows={3}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-600"
+              placeholder="Tell people what you do or what you're building."
             />
           </div>
 

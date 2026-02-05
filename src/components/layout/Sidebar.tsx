@@ -2,14 +2,15 @@
 
  import Link from "next/link";
  import { usePathname } from "next/navigation";
- import {
-   Home,
-   Compass,
-   Briefcase,
-   FileText,
-   MessageCircle,
-   User,
- } from "lucide-react";
+import {
+  Home,
+  Compass,
+  Briefcase,
+  FileText,
+  MessageCircle,
+  Users,
+  User,
+} from "lucide-react";
 
  interface SidebarProps {
    isOpenMobile: boolean;
@@ -18,12 +19,13 @@
 
 const navItems = [
   { href: "/feed", label: "Home", icon: Home },
-   { href: "/explore", label: "Explore", icon: Compass },
-   { href: "/portfolio", label: "Portfolio", icon: Briefcase },
-   { href: "/blog", label: "Blog", icon: FileText },
-   { href: "/chat", label: "Chat", icon: MessageCircle },
-   { href: "/profile", label: "Profile", icon: User },
- ];
+  { href: "/explore", label: "Explore", icon: Compass },
+  { href: "/portfolio", label: "Portfolio", icon: Briefcase },
+  { href: "/blog", label: "Blog", icon: FileText },
+  { href: "/groups", label: "Groups", icon: Users },
+  { href: "/chat", label: "Chat", icon: MessageCircle },
+  { href: "/profile", label: "Profile", icon: User },
+];
 
  export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
    const pathname = usePathname();

@@ -1,6 +1,7 @@
  "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -18,6 +19,7 @@ export type Comment = {
   authorName: string;
   content: string;
   createdAt: string;
+  canDelete?: boolean;
 };
 
 export type Post = {
@@ -40,19 +42,24 @@ export type Post = {
 interface PostCardProps {
   post: Post;
   footerSlot?: ReactNode;
+  /** Current user's username; if same as post author, profile link goes to /profile */
+  currentUsername?: string | null;
   onToggleLike?: () => void;
   onToggleSave?: () => void;
   onDelete?: () => void;
   onAddComment?: (content: string) => void;
+  onDeleteComment?: (commentId: string) => void;
 }
 
 export function PostCard({
   post,
   footerSlot,
+  currentUsername = null,
   onToggleLike,
   onToggleSave,
   onDelete,
   onAddComment,
+  onDeleteComment,
 }: PostCardProps) {
   const liked = post.likedByMe ?? false;
   const likeCount = Math.max(0, post.likeCount ?? 0);
@@ -62,9 +69,19 @@ export function PostCard({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [commentValue, setCommentValue] = useState("");
+  const [showComments, setShowComments] = useState(false);
+
+  const profileHref =
+    currentUsername !== undefined && currentUsername !== null && post.author.name === currentUsername
+      ? "/profile"
+      : `/profile/${encodeURIComponent(post.author.name)}`;
+
+  const baseUrl =
+    (typeof window !== "undefined" && window.location.origin) ||
+    (process.env.NEXT_PUBLIC_APP_URL ?? "https://bloggy-front.onrender.com");
 
   const handleShare = async () => {
-    const url = `https://bloggy.uz/p/${post.id}`;
+    const url = `${baseUrl}/p/${post.id}`;
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
@@ -89,15 +106,21 @@ export function PostCard({
     <article className="group rounded-2xl border border-zinc-200 bg-white/90 p-4 shadow-sm ring-1 ring-transparent transition hover:-translate-y-0.5 hover:shadow-md hover:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-950/80 dark:hover:ring-zinc-700">
       {/* Header */}
       <header className="mb-3 flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 via-sky-500 to-emerald-400 text-xs font-semibold text-white shadow-sm">
+        <Link
+          href={profileHref}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 via-sky-500 to-emerald-400 text-xs font-semibold text-white shadow-sm transition hover:opacity-90"
+        >
           {post.author.avatarInitials}
-        </div>
+        </Link>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+              <Link
+                href={profileHref}
+                className="truncate text-sm font-medium text-zinc-900 transition hover:underline dark:text-zinc-50"
+              >
                 {post.author.name}
-              </p>
+              </Link>
               <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
                 {post.author.role}
               </p>
@@ -204,10 +227,15 @@ export function PostCard({
           </button>
           <button
             type="button"
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-1.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+            onClick={() => setShowComments((prev) => !prev)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-1.5 transition ${
+              showComments
+                ? "bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100"
+                : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+            }`}
           >
             <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span>Comment</span>
+            <span>Comment{comments.length > 0 ? ` · ${comments.length}` : ""}</span>
           </button>
           <button
             type="button"
@@ -241,19 +269,31 @@ export function PostCard({
         ) : null}
 
         {/* Comments */}
+        {showComments && (
         <div className="mt-3 space-y-2">
           {comments.length > 0 ? (
             <ul className="space-y-1.5">
               {comments.map((comment) => (
                 <li
                   key={comment.id}
-                  className="rounded-xl bg-zinc-50 px-3 py-1.5 text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  className="flex items-start gap-2 rounded-xl bg-zinc-50 px-3 py-1.5 text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
                 >
-                  <span className="font-medium">{comment.authorName}</span>{" "}
-                  <span className="text-zinc-400 dark:text-zinc-500">
-                    • {comment.createdAt}
-                  </span>
-                  <p className="mt-0.5">{comment.content}</p>
+                  <div className="flex-1">
+                    <span className="font-medium">{comment.authorName}</span>{" "}
+                    <span className="text-zinc-400 dark:text-zinc-500">
+                      • {comment.createdAt}
+                    </span>
+                    <p className="mt-0.5">{comment.content}</p>
+                  </div>
+                  {comment.canDelete && onDeleteComment ? (
+                    <button
+                      type="button"
+                      onClick={() => onDeleteComment(comment.id)}
+                      className="ml-1 inline-flex h-5 items-center rounded-full px-2 text-[10px] font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/40"
+                    >
+                      Delete
+                    </button>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -282,6 +322,7 @@ export function PostCard({
             </div>
           ) : null}
         </div>
+        )}
       </footer>
     </article>
   );

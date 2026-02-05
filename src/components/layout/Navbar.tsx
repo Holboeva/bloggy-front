@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, Bell, MessageCircle, Search, X } from "lucide-react";
-import { logout } from "@/lib/api";
+import { Menu, Bell, MessageCircle, Search, Sun, Moon, X } from "lucide-react";
+import { getCurrentUser, logout } from "@/lib/api";
+import { getAvatarInitials } from "@/lib/avatar";
 
 interface NavbarProps {
   onToggleSidebar?: () => void;
@@ -13,7 +14,53 @@ interface NavbarProps {
 export function Navbar({ onToggleSidebar }: NavbarProps) {
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [avatarInitials, setAvatarInitials] = useState<string>("BG");
   const router = useRouter();
+
+  // Load current user for avatar initials
+  useEffect(() => {
+    let isMounted = true;
+    getCurrentUser()
+      .then((user) => {
+        if (!isMounted) return;
+        const initials = getAvatarInitials(
+          user.first_name,
+          user.last_name,
+          user.username,
+        );
+        setAvatarInitials(initials);
+      })
+      .catch(() => {
+        // ignore, keep default initials
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Theme handling
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored =
+      (window.localStorage.getItem("bloggy_theme") as "light" | "dark" | null) ??
+      null;
+    const prefersDark =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initial = stored ?? (prefersDark ? "dark" : "light");
+    setTheme(initial);
+    document.documentElement.classList.toggle("dark", initial === "dark");
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    if (typeof window !== "undefined") {
+      document.documentElement.classList.toggle("dark", next === "dark");
+      window.localStorage.setItem("bloggy_theme", next);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -48,7 +95,7 @@ export function Navbar({ onToggleSidebar }: NavbarProps) {
                value={search}
                onChange={(e) => setSearch(e.target.value)}
                placeholder="Search people, posts, or tags"
-               className="h-9 w-full rounded-full border border-zinc-200 bg-zinc-50 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 shadow-sm outline-none transition focus:border-zinc-300 focus:bg-white focus:ring-2 focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-700 dark:focus:bg-zinc-950 dark:focus:ring-zinc-800"
+               className="h-9 w-full rounded-full border border-zinc-200 bg-zinc-50 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 shadow-sm outline-none transition focus:border-zinc-300 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-700 dark:focus:ring-zinc-800"
              />
              {search && (
                <button
@@ -63,8 +110,20 @@ export function Navbar({ onToggleSidebar }: NavbarProps) {
            </div>
          </div>
 
-         {/* Right: icons */}
-         <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
+        {/* Right: icons */}
+        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+            aria-label="Toggle color theme"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </button>
            <button
              type="button"
              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
@@ -86,7 +145,7 @@ export function Navbar({ onToggleSidebar }: NavbarProps) {
               className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-gradient-to-tr from-indigo-500 via-sky-500 to-emerald-400 text-xs font-medium text-white shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-zinc-800"
               aria-label="Open profile menu"
             >
-              BG
+              {avatarInitials}
             </button>
             {menuOpen && (
               <>

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CreatePostBar } from "@/components/feed/CreatePostBar";
 import { PostCard, type Comment, type Post } from "@/components/feed/PostCard";
-import { apiDelete, apiGet, apiPost } from "@/lib/api";
+import { apiDelete, apiGet, apiPost, getCurrentUser } from "@/lib/api";
+import { getAvatarInitials } from "@/lib/avatar";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 type ApiPost = {
@@ -36,6 +37,7 @@ export default function FeedPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -44,21 +46,27 @@ export default function FeedPage() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await apiGet<ApiPaginatedPosts>("/posts/");
+        const [postsData, me] = await Promise.all([
+          apiGet<ApiPaginatedPosts>("/posts/"),
+          getCurrentUser().catch(() => null),
+        ]);
+        const data = postsData;
+        const myUsername = me?.username ?? null;
+        if (isMounted) setCurrentUsername(myUsername);
 
         const mappedPosts: Post[] = data.results.map((post) => ({
           id: String(post.id),
           author: {
             name: post.author,
             role: "Bloggy member",
-            avatarInitials: post.author.slice(0, 2).toUpperCase(),
+            avatarInitials: getAvatarInitials(undefined, undefined, post.author),
           },
           createdAt: new Date(post.created_at).toLocaleString(),
           content: post.content,
           likeCount: post.likes_count,
           likedByMe: false,
           savedByMe: false,
-          isOwn: false,
+          isOwn: myUsername != null && post.author === myUsername,
           comments: [],
         }));
 
@@ -69,16 +77,19 @@ export default function FeedPage() {
         await Promise.all(
           mappedPosts.map(async (post) => {
             try {
-              const comments = await apiGet<ApiComment[]>(
+              const raw = await apiGet<ApiComment[] | { results: ApiComment[] }>(
                 `/posts/${post.id}/comments/`,
               );
+              const commentsList: ApiComment[] = Array.isArray(raw)
+                ? raw
+                : (raw?.results ?? []);
               if (!isMounted) return;
               setPosts((prev) =>
                 prev.map((p) =>
                   p.id === post.id
                     ? {
                         ...p,
-                        comments: comments.map<Comment>((c) => ({
+                        comments: commentsList.map<Comment>((c) => ({
                           id: String(c.id),
                           authorName: c.author,
                           content: c.content,
@@ -125,7 +136,7 @@ export default function FeedPage() {
       author: {
         name: created.author,
         role: "Bloggy member",
-        avatarInitials: created.author.slice(0, 2).toUpperCase(),
+        avatarInitials: getAvatarInitials(undefined, undefined, created.author),
       },
       createdAt: new Date(created.created_at).toLocaleString(),
       content: created.content,
@@ -185,9 +196,9 @@ export default function FeedPage() {
 
   const handleAddComment = (id: string, content: string) => {
     void (async () => {
-      const created = await apiPost<ApiComment, { content: string }>(
+      const created = await apiPost<ApiComment, { post: number; content: string }>(
         `/posts/${id}/comments/`,
-        { content },
+        { post: Number(id), content },
       );
 
       const newComment: Comment = {
@@ -195,6 +206,7 @@ export default function FeedPage() {
         authorName: created.author,
         content: created.content,
         createdAt: new Date(created.created_at).toLocaleString(),
+        canDelete: true,
       };
 
       setPosts((prev) =>
@@ -209,6 +221,26 @@ export default function FeedPage() {
       );
     })().catch(() => {
       // For demo, swallow comment errors
+    });
+  };
+
+  const handleDeleteComment = (postId: string, commentId: string) => {
+    // Optimistic update
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: (post.comments ?? []).filter(
+                (comment) => comment.id !== commentId,
+              ),
+            }
+          : post,
+      ),
+    );
+
+    void apiDelete<unknown>(`/posts/${postId}/comments/${commentId}/`).catch(() => {
+      // If delete fails, we could refetch comments; ignored for now
     });
   };
 
@@ -233,12 +265,16 @@ export default function FeedPage() {
             <PostCard
               key={post.id}
               post={post}
+              currentUsername={currentUsername}
               onToggleLike={() => handleToggleLike(post.id)}
               onToggleSave={() => handleToggleSave(post.id)}
               onDelete={
                 post.isOwn ? () => handleDeletePost(post.id) : undefined
               }
               onAddComment={(content) => handleAddComment(post.id, content)}
+              onDeleteComment={(commentId) =>
+                handleDeleteComment(post.id, commentId)
+              }
             />
           ))}
         </div>

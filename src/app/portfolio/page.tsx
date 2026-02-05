@@ -25,7 +25,24 @@ const INITIAL_FORM_STATE: ProjectFormState = {
 };
 
 export default function PortfolioPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>([
+    {
+      id: "demo-1",
+      title: "Bloggy — social‑professional platform",
+      description:
+        "A portfolio‑friendly social platform for sharing posts, comments, and projects. Built with Next.js, Django REST, and PostgreSQL.",
+      link: "https://bloggy-startup.onrender.com",
+      createdAt: "2025-01-01",
+    },
+    {
+      id: "demo-2",
+      title: "Personal portfolio site",
+      description:
+        "Responsive portfolio showcasing projects, blog posts, and contact information for potential clients and employers.",
+      link: undefined,
+      createdAt: "2024-10-15",
+    },
+  ]);
   const [form, setForm] = useState<ProjectFormState>(INITIAL_FORM_STATE);
   const [error, setError] = useState<string | null>(null);
 
@@ -98,7 +115,7 @@ export default function PortfolioPage() {
                 setForm((prev) => ({ ...prev, title: event.target.value }))
               }
               placeholder="Bloggy — social-professional platform"
-              className="h-9 w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:border-zinc-300 focus:bg-white focus:ring-2 focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-700 dark:focus:bg-zinc-950 dark:focus:ring-zinc-800"
+              className="h-9 w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:border-zinc-300 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-700 dark:focus:ring-zinc-800"
             />
           </div>
 
@@ -121,7 +138,7 @@ export default function PortfolioPage() {
               }
               rows={3}
               placeholder="Briefly describe the project, your role, and the outcome."
-              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:border-zinc-300 focus:bg-white focus:ring-2 focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-700 dark:focus:bg-zinc-950 dark:focus:ring-zinc-800"
+              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:border-zinc-300 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-700 dark:focus:ring-zinc-800"
             />
           </div>
 
@@ -144,7 +161,7 @@ export default function PortfolioPage() {
                 setForm((prev) => ({ ...prev, link: event.target.value }))
               }
               placeholder="https://"
-              className="h-9 w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:border-zinc-300 focus:bg-white focus:ring-2 focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-700 dark:focus:bg-zinc-950 dark:focus:ring-zinc-800"
+              className="h-9 w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:border-zinc-300 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-700 dark:focus:ring-zinc-800"
             />
           </div>
         </div>
